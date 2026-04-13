@@ -1,0 +1,29 @@
+
+# --- Standard .NET / Visual Studio Boilerplate ---
+# Build results
+[Bb]in/
+[Oo]bj/
+
+# User-specific files
+*.user
+*.userosscache
+*.sln.docstates
+
+# Visual Studio / VS Code
+.vs/
+.vscode/
+
+# NuGet
+packages/
+*.nupkg
+
+# Sensitive information
+appsettings.json
+appsettings.*.json
+!appsettings.json
+!appsettings.Development.json
+
+# OS Files
+.DS_Store
+Thumbs.db
+/BarClip.Api/appsettings.Development.json
