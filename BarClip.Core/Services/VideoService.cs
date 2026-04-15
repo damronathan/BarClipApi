@@ -1,166 +1,105 @@
-﻿using FFMpegCore;
-using BarClip.Models.Requests;
-using System.Text.Json;
-using BarClip.Data.Schema;
-using static BarClip.Core.Helpers.FileHelper;
-using BarClip.Core.Helpers;
-using BarClip.Core.Repositories;
+﻿using BarClip.Core.Helpers;
 using BarClip.Core.Interfaces;
+using BarClip.Core.Repositories;
+using BarClip.Data.Schema;
+using BarClip.Models.Requests;
+using FFMpegCore;
+using System.Globalization;
+using System.Text.Json;
+using static BarClip.Core.Helpers.FileHelper;
 
 namespace BarClip.Core.Services;
 
 public interface IVideoService
 {
-    Task<OriginalVideo> CreateOriginalVideo(User user, Session session);
-    Task<List<OriginalVideo>> GetOriginalVideosForSession(Guid SessionId);
-    //Task<ProcessedVideoRequest> ProcessVideo(SessionFolderPaths sessionFolderPaths, OriginalVideoRequest video);
-    Task SaveVideos(SaveVideosRequest request);
-    //Task<SaveVideosRequest> TrimVideoFromStorage(string messageText);
-    Task UpdateVideos(OriginalVideo original, ProcessedVideo processed);
+    string GetFileNameFromMessageText(string messageText);
+    Task<VideoRequest> GetVideoRequestFromMessage(string fileName);
+    Task<List<Video>> GetAllVideosForSession(Guid SessionId);
+    Task SaveVideo(VideoRequest request);
 }
 
 public class VideoService : IVideoService
 {
     private readonly StorageService? _storageService;
-    private readonly TrimService _trimService;
-    private readonly FrameService _frameService;
-    private readonly PlateAnalysisService _plateAnalysisService;
     private readonly VideoRepository _repo;
 
-    public VideoService(StorageService storageService, TrimService trimService, FrameService frameService, PlateAnalysisService plateAnalysisService, VideoRepository repo)
+    public VideoService(StorageService storageService, VideoRepository repo)
     {
         _storageService = storageService;
-        _trimService = trimService;
-        _frameService = frameService;
-        _plateAnalysisService = plateAnalysisService;
         _repo = repo;
 
     }
-    public async Task SaveVideos(SaveVideosRequest request)
+    public async Task SaveVideo(VideoRequest request)
     {
-        await _repo.SaveVideosAsync(request);
+        await _repo.SaveVideoAsync(request);
     }
-
-    public async Task UpdateVideos(OriginalVideo original, ProcessedVideo processed)
+    public async Task<List<Video>> GetAllVideosForSession(Guid SessionId)
     {
-        await _repo.AddProcessedVideoAsync(processed);
-
-        original.CurrentProcessedVideoId = processed.Id;
-
-        await _repo.UpdateOriginalVideoAsync(original);
+        return await _repo.GetAllVideosForSessionAsync(SessionId);
     }
-    public async Task<List<OriginalVideo>> GetOriginalVideosForSession(Guid SessionId)
+    public async Task<VideoRequest> GetVideoRequestFromMessage(string messsageText)
     {
-        return await _repo.GetOriginalVideosForSessionAsync(SessionId);
-    }
-    public async Task<OriginalVideo> CreateOriginalVideo(User user, Session session)
-    {
-        var video = new OriginalVideo
+        var fileName = GetFileNameFromMessageText(messsageText);
+
+        var metadata = await _storageService.GetMetaDataAsync(fileName, "videos");
+
+        var userId = GetValueFromMetadata(metadata, "UserId");
+        var videoId = Guid.TryParse(GetValueFromMetadata(metadata, "VideoId"), out var videoIdResult) ? videoIdResult : Guid.Empty;
+        var sessionId = Guid.TryParse(GetValueFromMetadata(metadata, "SessionId"), out var sessionIdResult) ? sessionIdResult : Guid.Empty;
+        var createdAtString = GetValueFromMetadata(metadata, "CreatedAt");        
+        var createdAt = DateTime.ParseExact(createdAtString, "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+        
+
+        if (userId == null || videoId == Guid.Empty || sessionId == Guid.Empty)
         {
-            Id = Guid.NewGuid(),
-            UserId = user.Id,
-            User = user,
-            ProcessedVideos = [],
-            CurrentProcessedVideoId = Guid.Empty,
-            SessionId = session.Id,
-            Session = session,
+            throw new ArgumentException($"Metadata for file {fileName} is missing required fields. UserId: {userId}, VideoId: {videoId}, SessionId: {sessionId}, CreatedAt: {createdAt}");
+        }
+        var videoRequest = new VideoRequest()
+        {
+                UserId = userId,
+                VideoId = videoId,
+                SessionId = sessionId,
+                CreatedAt = createdAt
         };
-        return await _repo.CreateOriginalVideoAsync(video);
+        return videoRequest;
     }
+    public string GetFileNameFromMessageText(string messageText)
+    {
+        using var doc = JsonDocument.Parse(messageText);
+        var root = doc.RootElement;
 
-    //public async Task<ProcessedVideoRequest> ProcessVideo(SessionFolderPaths sessionFolderPaths, OriginalVideoRequest video)
-    //{
-    //    video.Frames = await _frameService.ExtractAndProcessFrames(video);
+        if (!root.TryGetProperty("subject", out JsonElement subjectElement))
+            throw new ArgumentException($"Message: {messageText} does not contain 'subject' property.");
 
-    //    if (video.TrimStart == TimeSpan.Zero)
-    //    {
-    //        _plateAnalysisService.SetTrim(video);
-    //    }
+        var subject = subjectElement.GetString()
+            ?? throw new ArgumentException($"Message: {messageText} does not contain a valid 'subject' property.");
 
-    //    ProcessedVideoRequest processedVideo = new()
-    //    {
-    //        Id = Guid.NewGuid(),
-    //        FilePath = Path.Combine(sessionFolderPaths.Processed, $"{video.LiftNumber}_Trimmed.MOV"),
-    //        Duration = video.TrimFinish - video.TrimStart
-    //    };
+        const string prefix = "/blobServices/default/containers/videos/blobs/";
 
-    //    try
-    //    {
-    //        string? weightText = null;
-    //        if (video.WeightKg is not null)
-    //        {
-    //            var lbWeight = Math.Floor((decimal)(video.WeightKg * 2.2045));
-    //            weightText = $"{video.WeightKg}KG/{lbWeight}LB";
-    //        }
-    //        await _videoEditor.TrimAndLabelAsync(video, processedVideo, weightText);
+        if (subject.StartsWith(prefix))
+        {
+            // Exact case match - normal extraction
+            return subject[prefix.Length..];
+        }
+        else
+        {
+            throw new ArgumentException($"Unexpected subject format: {subject}");
+        }
+    }
+    private static string? GetValueFromMetadata(IDictionary<string, string> metadata, string key)
+    {
+        if (!metadata.TryGetValue(key, out var value))
+            return null;
 
-    //        return processedVideo;
+        return value;
+    }
+    
 
-    //    }
-    //    catch (Exception ex)
-    //    {
-    //        throw new Exception("Error during trimming and labeling: " + ex.Message);
-    //    }
-    //}
-    //public async Task<SaveVideosRequest> TrimVideoFromStorage(string messageText)
-    //{
-    //    string fileName = GetFileNameFromMessageText(messageText);
-
-    //    var (videoFilePath, entraId) = await _storageService.DownloadVideoAsync(fileName, "originalvideos");
-
-    //    var videoAnalysis = await FFProbe.AnalyseAsync(videoFilePath);
-
-    //    var originalVideo = new OriginalVideoRequest()
-    //    {
-    //        Id = Guid.NewGuid(),
-    //        FilePath = videoFilePath,
-    //        VideoAnalysis = videoAnalysis,
-    //        UploadedAt = DateTime.Now,
-    //    };
-
-    //    originalVideo.Frames = await _frameService.ExtractAndProcessFrames(originalVideo);
-
-    //    await _storageService.CopyVideoAsync(fileName, originalVideo.Id, "processedvideos");
-
-    //    if (originalVideo.TrimStart == TimeSpan.Zero)
-    //    {
-    //        _plateAnalysisService.SetTrim(originalVideo);
-    //    }
-    //    var trimmedVideo = await _trimService.Trim(originalVideo);
-
-    //    originalVideo.CurrentTrimmedVideoId = trimmedVideo.Id;
-
-    //    var request = new SaveVideosRequest
-    //    {
-    //        OriginalVideo = originalVideo,
-    //        TrimmedVideo = trimmedVideo,
-    //        EntraId = entraId
-    //    };
-
-    //    return request;
-    //}
-    //private string GetFileNameFromMessageText(string messageText)
-    //{
-    //    using var doc = JsonDocument.Parse(messageText);
-    //    var root = doc.RootElement;
-
-    //    if (!root.TryGetProperty("subject", out JsonElement subjectElement))
-    //        throw new ArgumentException($"Message: {messageText} does not contain 'subject' property.");
-
-    //    var subject = subjectElement.GetString()
-    //        ?? throw new ArgumentException($"Message: {messageText} does not contain a valid 'subject' property.");
-
-    //    const string prefix = "/blobServices/default/containers/originalvideos/blobs/";
-
-    //    if (subject.StartsWith(prefix))
-    //    {
-    //        // Exact case match - normal extraction
-    //        return subject[prefix.Length..];
-    //    }
-    //    else
-    //    {
-    //        throw new ArgumentException($"Unexpected subject format: {subject}");
-    //    }
-    //}
-
+}
+public class VideoRequest
+{
+    public string UserId { get; set; }
+    public Guid VideoId { get; set; }
+    public Guid SessionId { get; set; }
+    public DateTime CreatedAt { get; set;  }
 }

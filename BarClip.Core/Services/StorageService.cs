@@ -55,7 +55,7 @@ public class StorageService
 
     public string GenerateUploadSasUrl(Guid blobName)
     {
-        var containerClient = _blobServiceClient.GetBlobContainerClient("originalvideos");
+        var containerClient = _blobServiceClient.GetBlobContainerClient("videos");
 
         var blobClient = containerClient.GetBlobClient(blobName.ToString() + ".mov");
 
@@ -66,13 +66,21 @@ public class StorageService
 
     public string GenerateDownloadSasUrl(Guid blobName)
     {
-        var containerClient = _blobServiceClient.GetBlobContainerClient("trimmedvideos");
+        var containerClient = _blobServiceClient.GetBlobContainerClient("videos");
 
-        var blobClient = containerClient.GetBlobClient(blobName.ToString() + ".mp4");
+        var blobClient = containerClient.GetBlobClient(blobName.ToString() + ".mov");
 
         var sasUri =  blobClient.GenerateSasUri(BlobSasPermissions.Read, DateTimeOffset.UtcNow.AddHours(1));
 
         return sasUri.ToString();
+    }
+
+    public async virtual Task<IDictionary<string, string>> GetMetaDataAsync(string  blobName, string containerName)
+    {
+        var containerClient = _blobServiceClient.GetBlobContainerClient(containerName);
+        var blobClient = containerClient.GetBlobClient(blobName);
+        var properties = await blobClient.GetPropertiesAsync();
+        return properties.Value.Metadata;
     }
 
     public async Task DeleteVideoAsync(Guid blobName, string containerName)

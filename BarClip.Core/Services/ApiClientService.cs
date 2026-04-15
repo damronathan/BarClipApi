@@ -4,10 +4,11 @@ using System.Net.Http.Headers;
 using BarClip.Models.Requests;
 using System.Text.Json;
 using System.Text;
+using BarClip.Core.Services;
 
 public interface IApiClientService
 {
-    Task<HttpResponseMessage> SaveVideosAsync(SaveVideosRequest request);
+    Task<HttpResponseMessage> SaveVideoAsync(VideoRequest request);
 }
 
 public class ApiClientService : IApiClientService
@@ -37,7 +38,7 @@ public class ApiClientService : IApiClientService
         _url = url;
     }
 
-    public async Task<HttpResponseMessage> SaveVideosAsync(SaveVideosRequest request)
+    public async Task<HttpResponseMessage> SaveVideoAsync(VideoRequest request)
     {
         var token = await GetAccessTokenAsync();
         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
@@ -48,7 +49,7 @@ public class ApiClientService : IApiClientService
         });
         var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-        var response = await _httpClient.PostAsync(_url + "/video/save-videos", content);
+        var response = await _httpClient.PostAsync(_url + "/video/save-video", content);
 
         if (!response.IsSuccessStatusCode)
         {

@@ -8,8 +8,7 @@ public class User : BaseEntity
     public string EntraId { get; set; }
     public string? Email { get; set; }
     public List<Session>? Sessions { get; set; }
-    public List<ProcessedVideo>? TrimmedVideos { get; set; }
-    public List<OriginalVideo>? OriginalVideos { get; set; }
+    public List<Video>? Videos { get; set; }
 
     public static void Configure(ModelBuilder modelBuilder)
     {
@@ -22,12 +21,7 @@ public class User : BaseEntity
                   .HasForeignKey(s => s.UserId)
                   .OnDelete(DeleteBehavior.Restrict);
 
-            entity.HasMany(u => u.TrimmedVideos)
-                  .WithOne(t => t.User)
-                  .HasForeignKey(t => t.UserId)
-                  .OnDelete(DeleteBehavior.Restrict);
-
-            entity.HasMany(u => u.OriginalVideos)
+            entity.HasMany(u => u.Videos)
                   .WithOne(o => o.User)
                   .HasForeignKey(o => o.UserId)
                   .OnDelete(DeleteBehavior.Restrict);

@@ -21,7 +21,7 @@ public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
             throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
         }
         var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
-        optionsBuilder.UseSqlite(connectionString);
+        optionsBuilder.UseSqlServer(connectionString);
 
         return new AppDbContext(optionsBuilder.Options);
     }

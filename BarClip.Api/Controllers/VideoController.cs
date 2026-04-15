@@ -14,29 +14,29 @@ namespace BarClip.Api.Controllers;
 [Authorize]
 public class VideoController : ControllerBase
 {
-    private readonly VideoRepository _repo;
+    private readonly IVideoService _videoService;
     private readonly IHubContext<VideoStatusHub> _hubContext;
     private readonly StorageService _storageService;
-    public VideoController(VideoRepository repo, IHubContext<VideoStatusHub> hubContext, StorageService storageService)
+    public VideoController(IVideoService videoService, IHubContext<VideoStatusHub> hubContext, StorageService storageService)
     {
-        _repo = repo;
+        _videoService = videoService;
         _hubContext = hubContext;
         _storageService = storageService;
     }
 
-    [HttpPost("save-videos")]
-    public async Task<IActionResult> SaveVideos([FromBody] SaveVideosRequest request)
+    [HttpPost("save-video")]
+    public async Task<IActionResult> SaveVideo([FromBody] VideoRequest request)
     {
-        var url = _storageService.GenerateDownloadSasUrl(request.TrimmedVideo.Id);
+        var url = _storageService.GenerateDownloadSasUrl(request.VideoId);
 
         if (string.IsNullOrEmpty(url))
         {
             return BadRequest("Failed to generate download SAS URL");
         }
 
-        await _hubContext.Clients.User(request.EntraId).SendAsync("TrimSucceeded", url);
+        await _videoService.SaveVideo(request);
 
-        await _repo.SaveVideosAsync(request);
+        await _hubContext.Clients.User(request.UserId).SendAsync("VideoSaved", request, url);
 
         return Ok(new { Message = "Videos saved successfully." });
     }

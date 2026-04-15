@@ -9,118 +9,93 @@ namespace BarClip.Core.Repositories;
 public class VideoRepository
 {
     private readonly AppDbContext _context;
-    private readonly StorageService _storageService;
     private readonly UserRepository _userRepository;
 
     public VideoRepository(AppDbContext context, StorageService storageService, UserRepository userRepository)
     {
         _context = context;
-        _storageService = storageService;
         _userRepository = userRepository;
     }
     public Task SaveChangesAsync() => _context.SaveChangesAsync();
 
-    public async Task AddProcessedVideoAsync(ProcessedVideo processed)
+    public async Task AddVideoAsync(Video video)
     {
         // Clear navigation properties to avoid tracking issues
-        processed.User = null;
-        processed.OriginalVideo = null;
+        video.User = null;
+        video.Session = null;
 
         // Verify foreign keys are set
-        if (processed.UserId == Guid.Empty)
-            throw new InvalidOperationException("ProcessedVideo.UserId cannot be empty");
+        if (video.UserId == null)
+            throw new InvalidOperationException("Video.UserId cannot be null");
 
-        if (processed.OriginalVideoId == Guid.Empty)
-            throw new InvalidOperationException("ProcessedVideo.OriginalVideoId cannot be empty");
+        if (video.SessionId == Guid.Empty)
+            throw new InvalidOperationException("Video.SessionId cannot be empty");
 
-        _context.ProcessedVideos.Add(processed);
+        _context.Videos.Add(video);
         await _context.SaveChangesAsync();
     }
 
-    public async Task UpdateOriginalVideoAsync(OriginalVideo original)
+    public async Task UpdateOriginalVideoAsync(Video video)
     {
         // Fetch the existing entity and update only specific properties
-        var existing = await _context.OriginalVideos.FindAsync(original.Id);
+        var existing = await _context.Videos.FindAsync(video.Id);
 
         if (existing == null)
-            throw new InvalidOperationException($"OriginalVideo {original.Id} not found");
+            throw new InvalidOperationException($"Video {video.Id} not found");
 
-        existing.TrimStart = original.TrimStart;
-        existing.TrimFinish = original.TrimFinish;
-        existing.CurrentProcessedVideoId = original.CurrentProcessedVideoId;
+        // **Placeholder, add update logic here.
 
         await _context.SaveChangesAsync();
     }
-    public async Task<List<OriginalVideo>> GetOriginalVideosForSessionAsync(Guid sessionId)
+    public async Task<List<Video>> GetAllVideosForSessionAsync(Guid sessionId)
     {
-        return await _context.OriginalVideos
+        return await _context.Videos
             .Where(v => v.SessionId == sessionId)
                     .AsNoTracking()
             .ToListAsync();
     }
 
-    public async Task<OriginalVideo> CreateOriginalVideoAsync(OriginalVideo video)
+    public async Task<Video> CreateVideoAsync(Video video)
     {
-        _context.OriginalVideos.Add(video);
+        _context.Videos.Add(video);
         await _context.SaveChangesAsync();
         return video;
     }
-    public async Task<OriginalVideo?> GetOriginalVideoByTrimmedIdAsync(Guid trimmedVideoId)
+    public async Task<Video?> GetVideoByIdAsync(Guid id)
     {
-        return await _context.OriginalVideos
-            .FirstOrDefaultAsync(v => v.CurrentProcessedVideoId == trimmedVideoId);
+        return await _context.Videos
+            .FirstOrDefaultAsync(v => v.Id == id);
     }
 
-    public async Task SaveVideosAsync(SaveVideosRequest request)
+    public async Task SaveVideoAsync(VideoRequest request)
     {
         // Ensure related entities are known to EF
-        _context.Attach(new User { Id = request.UserId });
+        _context.Attach(new User { EntraId = request.UserId });
         _context.Attach(new Session { Id = request.SessionId });
 
         // Find or create the original video (and track it)
-        var originalVideo = await _context.OriginalVideos
-            .Include(v => v.ProcessedVideos)
-            .FirstOrDefaultAsync(v => v.Id == request.OriginalVideo.Id);
+        var video = await _context.Videos
+            .FirstOrDefaultAsync(v => v.Id == request.VideoId);
 
-        if (originalVideo == null)
+        if (video == null)
         {
-            originalVideo = new OriginalVideo
+            video = new Video
             {
-                Id = request.OriginalVideo.Id,
+                Id = request.VideoId,
                 UserId = request.UserId,
                 SessionId = request.SessionId,
-                CreatedAt = request.OriginalVideo.UploadedAt
+                CreatedAt = request.CreatedAt
             };
-            _context.OriginalVideos.Add(originalVideo);
+            _context.Videos.Add(video);
         }
         else
         {
-            originalVideo.TrimStart = request.OriginalVideo.TrimStart;
-            originalVideo.TrimFinish = request.OriginalVideo.TrimFinish;
-            originalVideo.CurrentProcessedVideoId = request.OriginalVideo.CurrentTrimmedVideoId;
+            video.Id = request.VideoId;
+            video.SessionId = request.SessionId;
+            video.UserId = request.UserId;
+            video.CreatedAt = request.CreatedAt;
+            _context.Videos.Update(video);
         }
-
-        // Create processed video and attach it to the tracked originalVideo
-        var trimmedVideo = new ProcessedVideo
-        {
-            Id = request.TrimmedVideo.Id,
-            UserId = request.UserId,
-            OriginalVideoId = originalVideo.Id,
-            Duration = request.TrimmedVideo.Duration
-        };
-
-        // If a previous one exists, replace it
-        var existingTrimmedVideo = originalVideo.ProcessedVideos
-            .FirstOrDefault(v => v.OriginalVideoId == trimmedVideo.OriginalVideoId);
-
-        if (existingTrimmedVideo != null)
-        {
-            _context.ProcessedVideos.Remove(existingTrimmedVideo);
-            await _context.SaveChangesAsync(); // flush delete first
-        }
-
-        _context.ProcessedVideos.Add(trimmedVideo);
-        originalVideo.ProcessedVideos.Add(trimmedVideo);
 
         await _context.SaveChangesAsync();
     }
