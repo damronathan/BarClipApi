@@ -9,7 +9,7 @@ namespace BarClip.Api.Controllers;
 
 [Route("api/sessions")]
 [ApiController]
-//[Authorize]
+[Authorize]
 public class SessionController : ControllerBase
 {
     private readonly SessionService _sessionService;
