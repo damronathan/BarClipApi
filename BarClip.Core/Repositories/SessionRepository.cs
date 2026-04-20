@@ -1,6 +1,8 @@
 ﻿using BarClip.Data.Schema;
 using BarClip.Data;
 using Microsoft.EntityFrameworkCore;
+using BarClip.Models.Requests;
+using BarClip.Models.Dto;
 
 namespace BarClip.Core.Repositories;
 public class SessionRepository
@@ -17,17 +19,53 @@ public class SessionRepository
         await _context.Sessions.AddAsync(session);
         await _context.SaveChangesAsync();
     }
+    public async Task<Session> UpdateSessionAsync(Guid Id, UpdateSessionRequest request)
+    {
+        var session = await GetSessionByIdAsync(Id);
+        if (session == null)
+        {
+            throw new InvalidOperationException("No session found");
+        }
+        session.Title = request.Title;
+        _context.Sessions.Update(session);
+        await _context.SaveChangesAsync();
+        return session;
+    }
+    public async Task<Session> GetOrCreateSessionAsync(Guid sessionId, Guid userId)
+    {
+        var existingSession = await GetSessionByIdAsync(sessionId);
+        if (existingSession is not null)
+        {
+            return existingSession;
+        }
+        else
+        {
+            var newSession = new Session
+            {
+                Id = sessionId,
+                UserId = userId
+            };
+            _context.Sessions.Add(newSession);
+            await _context.SaveChangesAsync();
+            return newSession;
+        }
+    }
     public async Task<Session?> GetSessionByIdAsync(Guid sessionId)
     {
         var result = await _context.Sessions.FindAsync(sessionId);
         return result;
     }
-    public async Task<List<Session>> GetAllSessionsAsync()
+    public async Task<List<Session>> GetSessionsByUserIdAsync(Guid userId)
     {
-        var result = await _context.Sessions
-            .AsNoTracking()
+        return await _context.Sessions
+            .Where(s => s.UserId == userId)
+            .Select(s => new Session
+            {
+                Id = s.Id,
+                Title = s.Title,
+                CreatedAt = s.CreatedAt
+            })
             .ToListAsync();
-        return result;
     }
     public async Task DeleteSessionAsync(Guid sessionId)
     {

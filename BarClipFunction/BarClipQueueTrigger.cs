@@ -8,13 +8,13 @@ namespace BarClipFunction;
 public class BarClipQueueTrigger
 {
     private readonly ILogger<BarClipQueueTrigger> _logger;
-    private IVideoService _videoService;
+    private FunctionService _functionService;
     private IApiClientService _client;
 
-    public BarClipQueueTrigger(ILogger<BarClipQueueTrigger> logger, IVideoService videoService, IApiClientService client)
+    public BarClipQueueTrigger(ILogger<BarClipQueueTrigger> logger, FunctionService functionService, IApiClientService client)
     {
         _logger = logger;
-        _videoService = videoService;
+        _functionService = functionService;
         _client = client;
     }
 
@@ -25,11 +25,10 @@ public class BarClipQueueTrigger
     {
         _logger.LogInformation("Processing new video message");
 
-        var request = await _videoService.GetVideoRequestFromMessage(message.MessageText);
+        var request = await _functionService.GetVideoRequestFromMessage(message.MessageText);
 
-        await _client.SaveVideoAsync(request);
+        var response = await _client.SaveVideoAsync(request);
 
-        _logger.LogInformation("Successfully processed video {VideoId}", request.VideoId);
-    }
+        _logger.LogInformation("Successfully processed video {VideoId}", request.VideoId);    }
 
 }

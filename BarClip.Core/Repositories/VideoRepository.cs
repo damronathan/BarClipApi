@@ -10,11 +10,13 @@ public class VideoRepository
 {
     private readonly AppDbContext _context;
     private readonly UserRepository _userRepository;
+    private readonly SessionRepository _sessionRepository;
 
-    public VideoRepository(AppDbContext context, StorageService storageService, UserRepository userRepository)
+    public VideoRepository(AppDbContext context, StorageService storageService, UserRepository userRepository, SessionRepository sessionRepository)
     {
         _context = context;
         _userRepository = userRepository;
+        _sessionRepository = sessionRepository;
     }
     public Task SaveChangesAsync() => _context.SaveChangesAsync();
 
@@ -47,10 +49,17 @@ public class VideoRepository
 
         await _context.SaveChangesAsync();
     }
-    public async Task<List<Video>> GetAllVideosForSessionAsync(Guid sessionId)
+    public async Task<List<Video>> GetAllVideosForSessionAsync(Guid? sessionId)
     {
         return await _context.Videos
             .Where(v => v.SessionId == sessionId)
+                    .AsNoTracking()
+            .ToListAsync();
+    }
+    public async Task<List<Video>> GetAllVideosForUserAsync(Guid? userId)
+    {
+        return await _context.Videos
+            .Where(v => v.UserId == userId)
                     .AsNoTracking()
             .ToListAsync();
     }
@@ -70,8 +79,9 @@ public class VideoRepository
     public async Task SaveVideoAsync(VideoRequest request)
     {
         // Ensure related entities are known to EF
-        _context.Attach(new User { EntraId = request.UserId });
-        _context.Attach(new Session { Id = request.SessionId });
+
+        var user = await _userRepository.GetOrCreateUserAsync(request.UserId);
+        await _sessionRepository.GetOrCreateSessionAsync(request.SessionId, user.Id);
 
         // Find or create the original video (and track it)
         var video = await _context.Videos
@@ -82,9 +92,11 @@ public class VideoRepository
             video = new Video
             {
                 Id = request.VideoId,
-                UserId = request.UserId,
+                UserId = user.Id,
                 SessionId = request.SessionId,
-                CreatedAt = request.CreatedAt
+                CreatedAt = request.CreatedAt,
+                OrderNumber = request.OrderNumber,
+                IsFull = request.IsFull
             };
             _context.Videos.Add(video);
         }
@@ -92,9 +104,8 @@ public class VideoRepository
         {
             video.Id = request.VideoId;
             video.SessionId = request.SessionId;
-            video.UserId = request.UserId;
+            video.UserId = user.Id;
             video.CreatedAt = request.CreatedAt;
-            _context.Videos.Update(video);
         }
 
         await _context.SaveChangesAsync();

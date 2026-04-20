@@ -1,14 +1,20 @@
 ﻿using BarClip.Core.Repositories;
 using BarClip.Data.Schema;
+using BarClip.Models.Dto;
+using BarClip.Models.Requests;
 using System.Windows.Markup;
 
 namespace BarClip.Core.Services;
 public class SessionService
 {
     private readonly SessionRepository _repo;
-    public SessionService(SessionRepository repo)
+    private readonly StorageService _storageService;
+    private readonly UserRepository _userRepository;
+    public SessionService(SessionRepository repo, StorageService storageService, UserRepository userRepository)
     {
         _repo = repo;
+        _storageService = storageService;
+        _userRepository = userRepository;
     }
     public async Task<Session> CreateSession(User? user, string title)
     {
@@ -42,12 +48,41 @@ public class SessionService
 
         return session;
     }
-    public async Task<List<Session>> GetAllSessions()
+    public async Task<List<SessionDto>> GetAllSessions(string userId)
     {
-        return await _repo.GetAllSessionsAsync();
+        var user = await _userRepository.GetOrCreateUserAsync(userId);
+        var sessions = await _repo.GetSessionsByUserIdAsync(user.Id);
+        var sessionDtos = new List<SessionDto>();
+        foreach (var session in sessions)
+        {
+            var thumbnailUrl = _storageService.GenerateDownloadSasUrl(new SasUrlRequest { Id = session.Id, ContainerName = "sessions", Extension = ".jpg" });
+            var sessionDto = new SessionDto
+            {
+                Id = session.Id,
+                CreatedDate = session.CreatedAt,
+                Title = session.Title,
+                ThumbnailUrl = thumbnailUrl
+            };
+            sessionDtos.Add(sessionDto);
+        }
+        return sessionDtos;
     }
     public async Task DeleteSession(Guid sessionId)
     {
         await _repo.DeleteSessionAsync(sessionId);
+    }
+    public async Task<SessionDto> UpdateSession(Guid Id, UpdateSessionRequest request)
+    {
+        var session = await _repo.UpdateSessionAsync(Id, request);
+        
+        var thumbnailUrl = _storageService.GenerateDownloadSasUrl(new SasUrlRequest { Id = session.Id, ContainerName = "sessions", Extension = ".jpg" });
+        var sessionDto = new SessionDto
+        {
+            Id = session.Id,
+            CreatedDate = session.CreatedAt,
+            Title = session.Title,
+            ThumbnailUrl = thumbnailUrl
+        };
+        return sessionDto;
     }
 }

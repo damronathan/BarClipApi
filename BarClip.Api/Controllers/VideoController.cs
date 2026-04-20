@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using BarClip.Api.Hubs;
 using Microsoft.AspNetCore.SignalR;
 using System.Security.Claims;
+using BarClip.Models.Responses;
 
 namespace BarClip.Api.Controllers;
 
@@ -24,39 +25,35 @@ public class VideoController : ControllerBase
         _storageService = storageService;
     }
 
+    [HttpGet]
+    public async Task<ActionResult<ICollection<VideoResponse>>> GetVideos([FromQuery] GetVideosRequest request)
+    {
+        var response = await _videoService.GetVideos(request);
+
+        return Ok(response);
+    }
+
     [HttpPost("save-video")]
     public async Task<IActionResult> SaveVideo([FromBody] VideoRequest request)
     {
-        var url = _storageService.GenerateDownloadSasUrl(request.VideoId);
-
-        if (string.IsNullOrEmpty(url))
-        {
-            return BadRequest("Failed to generate download SAS URL");
-        }
-
         await _videoService.SaveVideo(request);
-
-        await _hubContext.Clients.User(request.UserId).SendAsync("VideoSaved", request, url);
+        await _hubContext.Clients.User(request.UserId).SendAsync("VideoSaved", request);
 
         return Ok(new { Message = "Videos saved successfully." });
     }
 
     [HttpGet("upload-sas-url")]
-    public UploadSasUrlResponse UploadSasUrl()
+    public async Task<ActionResult<UploadSasUrlResponse>> UploadSasUrl([FromQuery] SasUrlRequest request)
     {
         var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
         if (string.IsNullOrEmpty(userId))
         {
-            throw new ArgumentException("User identification not found");
+            return Unauthorized("User identification not found");
         }
 
-        var url = _storageService.GenerateUploadSasUrl(Guid.NewGuid());
-
-        if (string.IsNullOrEmpty(url))
-        {
-            throw new InvalidOperationException("Failed to generate upload SAS URL");
-        }
+        var url = await _videoService.GetUploadSasUrl(request);
+        
         var response = new UploadSasUrlResponse
         {
             UserId = userId,
@@ -64,6 +61,25 @@ public class VideoController : ControllerBase
         };
         return response;
     }
+
+    [HttpPost("upload-test")]
+    [AllowAnonymous]
+    public async Task<IActionResult> UploadTest([FromForm] TestRequest request)
+    {
+        var fileName = request.File.FileName;
+        var fullPath = Path.Combine(Path.GetTempPath(), fileName);
+
+        using (var stream = new FileStream(fullPath, FileMode.Create))
+        {
+            await request.File.CopyToAsync(stream);
+        }
+
+        await _storageService.UploadVideoStringAsync(fileName, fullPath, "videos");
+
+
+        return Ok(new { Message = "Videos saved successfully." });
+    }
+
     [HttpGet("test")]
     public IActionResult Test()
     {

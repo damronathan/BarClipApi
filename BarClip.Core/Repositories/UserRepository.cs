@@ -48,15 +48,30 @@ public class UserRepository
         await _context.SaveChangesAsync();
         return user;
     }
-    public async Task DeleteUserAsync(Guid userId)
+    public async Task DeleteUserAsync(User user)
     {
-        var user = await GetUserByIdAsync(userId);
-        if (user != null)
+        _context.Users.Remove(user);
+        await _context.SaveChangesAsync();
+
+    }
+
+    public async Task<User> GetOrCreateUserAsync(string nameIdentifier)
+    {
+        var existingUser = await GetByNameIdentifierAsync(nameIdentifier);
+        if (existingUser is not null)
         {
-            _context.Users.Remove(user);
-            await _context.SaveChangesAsync();
+            return existingUser;
         }
-        
+        else
+        {
+            var user = new User
+            {
+                EntraId = nameIdentifier,
+            };
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
+            return user;
+        }
     }
     public async Task<User> VerifyOrCreateUser(Guid id)
     {

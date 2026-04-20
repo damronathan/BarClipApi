@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<TargetFramework>net10.0</TargetFramework>
+		<TargetFramework>net8.0</TargetFramework>
 		<AzureFunctionsVersion>v4</AzureFunctionsVersion>
 		<OutputType>Exe</OutputType>
 		<ImplicitUsings>enable</ImplicitUsings>
@@ -23,9 +23,6 @@
 		<PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues" Version="5.5.3" />
 		<PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="2.0.7" />
 		<PackageReference Include="Microsoft.Azure.SignalR.Protocols" Version="1.32.0" />
-		<PackageReference Include="Microsoft.Azure.WebJobs" Version="3.0.44" />
-		<PackageReference Include="Microsoft.Azure.WebJobs.Extensions" Version="5.2.1" />
-		<PackageReference Include="Microsoft.Azure.WebJobs.Extensions.Http" Version="3.3.0" />
 		<PackageReference Include="Microsoft.Extensions.Azure" Version="1.13.1" />
 		<PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="10.0.1" />
 		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.22.1" />
@@ -33,13 +30,5 @@
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\BarClip.Core\BarClip.Core.csproj" />
-	</ItemGroup>
-	<ItemGroup>
-		<None Update="Models\PlateDetector.onnx">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</None>
-	</ItemGroup>
-	<ItemGroup>
-		<Folder Include="Models\" />
 	</ItemGroup>
 </Project>

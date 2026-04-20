@@ -6,10 +6,12 @@ namespace BarClip.Data.Schema;
 
 public class Video : BaseEntity
 {
-    public string UserId { get; set; }
+    public Guid UserId { get; set; }
     public User? User { get; set; }
     public Guid SessionId { get; set; }
     public Session? Session { get; set; }
+    public int OrderNumber { get; set; }
+    public bool IsFull { get; set; }
 
     public static void Configure(ModelBuilder modelBuilder)
     {

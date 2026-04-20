@@ -44,7 +44,9 @@ public static class CoreServiceRegistry
     public static IServiceCollection RegisterFunctionServices(this IServiceCollection services)
     {
 
-        RegisterServices(services);
+        services.AddScoped<FunctionService>();
+        services.AddScoped<StorageService>();
+        services.AddScoped<FileHelper>();
 
         RegisterExternalServices(services);
         services.AddSingleton<IApiClientService, ApiClientService>();
@@ -57,19 +59,13 @@ public static class CoreServiceRegistry
         services.AddScoped<VideoRepository>();
         services.AddScoped<UserRepository>();
         services.AddScoped<SessionRepository>();
-        services.AddScoped<LiftRepository>();
-        services.AddScoped<ExerciseRepository>();
     }
 
     private static void RegisterServices(IServiceCollection services)
     {
         services.AddScoped<IVideoService, VideoService>();
         services.AddScoped<StorageService>();
-        services.AddScoped<TrimService>();
-        services.AddScoped<FrameService>();
         services.AddScoped<SessionService>();
-        services.AddScoped<LiftService>();
-        services.AddScoped<PlateAnalysisService>();
         services.AddScoped<FileHelper>();
     }
     private static void RegisterExternalServices(IServiceCollection services)

@@ -1,20 +1,15 @@
-﻿using BarClip.Core.Helpers;
-using BarClip.Core.Interfaces;
-using BarClip.Core.Repositories;
+﻿using BarClip.Core.Repositories;
 using BarClip.Data.Schema;
 using BarClip.Models.Requests;
-using FFMpegCore;
-using System.Globalization;
-using System.Text.Json;
-using static BarClip.Core.Helpers.FileHelper;
+using BarClip.Models.Responses;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace BarClip.Core.Services;
 
 public interface IVideoService
 {
-    string GetFileNameFromMessageText(string messageText);
-    Task<VideoRequest> GetVideoRequestFromMessage(string fileName);
-    Task<List<Video>> GetAllVideosForSession(Guid SessionId);
+    Task<string> GetUploadSasUrl(SasUrlRequest request);
+    Task<ICollection<VideoResponse>> GetVideos(GetVideosRequest request);
     Task SaveVideo(VideoRequest request);
 }
 
@@ -27,79 +22,57 @@ public class VideoService : IVideoService
     {
         _storageService = storageService;
         _repo = repo;
-
     }
     public async Task SaveVideo(VideoRequest request)
     {
+        var url = _storageService.GenerateDownloadSasUrl(new SasUrlRequest { Id = request.VideoId, ContainerName = "videos", Extension = ".mov" });
+
+        if (string.IsNullOrEmpty(url))
+        {
+            throw new ArgumentException("Failed to generate download SAS URL");
+        }
+
         await _repo.SaveVideoAsync(request);
     }
-    public async Task<List<Video>> GetAllVideosForSession(Guid SessionId)
+    public async Task<string> GetUploadSasUrl(SasUrlRequest request)
     {
-        return await _repo.GetAllVideosForSessionAsync(SessionId);
-    }
-    public async Task<VideoRequest> GetVideoRequestFromMessage(string messsageText)
-    {
-        var fileName = GetFileNameFromMessageText(messsageText);
+        var url = _storageService.GenerateUploadSasUrl(request);
 
-        var metadata = await _storageService.GetMetaDataAsync(fileName, "videos");
-
-        var userId = GetValueFromMetadata(metadata, "UserId");
-        var videoId = Guid.TryParse(GetValueFromMetadata(metadata, "VideoId"), out var videoIdResult) ? videoIdResult : Guid.Empty;
-        var sessionId = Guid.TryParse(GetValueFromMetadata(metadata, "SessionId"), out var sessionIdResult) ? sessionIdResult : Guid.Empty;
-        var createdAtString = GetValueFromMetadata(metadata, "CreatedAt");        
-        var createdAt = DateTime.ParseExact(createdAtString, "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
-        
-
-        if (userId == null || videoId == Guid.Empty || sessionId == Guid.Empty)
+        if (string.IsNullOrEmpty(url))
         {
-            throw new ArgumentException($"Metadata for file {fileName} is missing required fields. UserId: {userId}, VideoId: {videoId}, SessionId: {sessionId}, CreatedAt: {createdAt}");
+            throw new InvalidOperationException("Failed to generate upload SAS URL");
         }
-        var videoRequest = new VideoRequest()
-        {
-                UserId = userId,
-                VideoId = videoId,
-                SessionId = sessionId,
-                CreatedAt = createdAt
-        };
-        return videoRequest;
+
+        return url;
     }
-    public string GetFileNameFromMessageText(string messageText)
+
+    public async Task<ICollection<VideoResponse>> GetVideos(GetVideosRequest request)
     {
-        using var doc = JsonDocument.Parse(messageText);
-        var root = doc.RootElement;
+        var videos = new List<Video>();
 
-        if (!root.TryGetProperty("subject", out JsonElement subjectElement))
-            throw new ArgumentException($"Message: {messageText} does not contain 'subject' property.");
-
-        var subject = subjectElement.GetString()
-            ?? throw new ArgumentException($"Message: {messageText} does not contain a valid 'subject' property.");
-
-        const string prefix = "/blobServices/default/containers/videos/blobs/";
-
-        if (subject.StartsWith(prefix))
+        if (request.SessionId is null)
         {
-            // Exact case match - normal extraction
-            return subject[prefix.Length..];
+            videos = await _repo.GetAllVideosForUserAsync(request.UserId);
         }
         else
         {
-            throw new ArgumentException($"Unexpected subject format: {subject}");
+            videos = await _repo.GetAllVideosForSessionAsync(request.SessionId);
         }
-    }
-    private static string? GetValueFromMetadata(IDictionary<string, string> metadata, string key)
-    {
-        if (!metadata.TryGetValue(key, out var value))
-            return null;
 
-        return value;
-    }
-    
+        var videoResponses = new List<VideoResponse>();
 
-}
-public class VideoRequest
-{
-    public string UserId { get; set; }
-    public Guid VideoId { get; set; }
-    public Guid SessionId { get; set; }
-    public DateTime CreatedAt { get; set;  }
+        foreach (var video in videos)
+        {
+            var videoResponse = new VideoResponse
+            {
+                Id = video.Id,
+                OrderNumber = video.OrderNumber,
+                IsFull = video.IsFull,
+                VideoSasUrl = _storageService.GenerateDownloadSasUrl(new SasUrlRequest { Id = video.Id, ContainerName = "videos", Extension = ".mov" }),
+                ThumbnailSasUrl = _storageService.GenerateDownloadSasUrl(new SasUrlRequest { Id = video.Id, ContainerName = "videos", Extension = ".jpg" })
+            };
+            videoResponses.Add(videoResponse);
+        }
+        return videoResponses;
+    }
 }
