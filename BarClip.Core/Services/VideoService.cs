@@ -69,7 +69,7 @@ public class VideoService : IVideoService
                 OrderNumber = video.OrderNumber,
                 IsFull = video.IsFull,
                 VideoSasUrl = _storageService.GenerateDownloadSasUrl(new SasUrlRequest { Id = video.Id, ContainerName = "videos", Extension = ".mov" }),
-                ThumbnailSasUrl = _storageService.GenerateDownloadSasUrl(new SasUrlRequest { Id = video.Id, ContainerName = "videos", Extension = ".jpg" })
+                ThumbnailSasUrl = _storageService.GenerateDownloadSasUrl(new SasUrlRequest { Id = video.Id, ContainerName = "thumbnails", Extension = ".jpg" })
             };
             videoResponses.Add(videoResponse);
         }
