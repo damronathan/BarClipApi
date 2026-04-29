@@ -30,5 +30,7 @@
 	</ItemGroup>
 	<ItemGroup>
 	  <ProjectReference Include="..\BarClip.Core\BarClipApi.Core.csproj" />
+	  <ProjectReference Include="..\BarClipApi.Core\BarClipApi.Core.csproj" />
+	  <ProjectReference Include="..\BarClipApi.Models\BarClipApi.Models.csproj" />
 	</ItemGroup>
 </Project>

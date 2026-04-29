@@ -1,7 +1,7 @@
 <Solution>
-  <Project Path="BarClip.Api/BarClipApi.Api.csproj" />
-  <Project Path="BarClip.Core/BarClipApi.Core.csproj" />
-  <Project Path="BarClip.Data/BarClipApi.Data.csproj" />
-  <Project Path="BarClip.Models/BarClipApi.Models.csproj" />
-  <Project Path="BarClipFunction/BarClipApi.Function.csproj" />
+  <Project Path="BarClipApi.Api/BarClipApi.Api.csproj" />
+  <Project Path="BarClipApi.Core/BarClipApi.Core.csproj" />
+  <Project Path="BarClipApi.Data/BarClipApi.Data.csproj" />
+  <Project Path="BarClipApi.Function/BarClipApi.Function.csproj" />
+  <Project Path="BarClipApi.Models/BarClipApi.Models.csproj" />
 </Solution>
