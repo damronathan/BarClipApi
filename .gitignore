@@ -27,3 +27,6 @@ appsettings.*.json
 .DS_Store
 Thumbs.db
 /BarClip.Api/appsettings.Development.json
+/BarClipApi.Api/Properties/launchSettings.json
+/BarClipApi.Api/appsettings.json
+/BarClipApi.Api/appsettings.Development.json
