@@ -1,0 +1,61 @@
+name: Deploy Backend
+
+on:
+  push:
+    branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy-api:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore BarClipApi.Api/BarClipApi.Api.csproj
+
+      - name: Build
+        run: dotnet build BarClipApi.Api/BarClipApi.Api.csproj --configuration Release --no-restore
+
+      - name: Publish
+        run: dotnet publish BarClipApi.Api/BarClipApi.Api.csproj --configuration Release --output ./publish/api
+
+      - name: Deploy to Azure App Service
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: 'barclip-api'
+          publish-profile: ${{ secrets.AZURE_API_PUBLISH_PROFILE }}
+          package: ./publish/api
+
+  build-and-deploy-function:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore BarClipApi.Function/BarClipApi.Function.csproj
+
+      - name: Build
+        run: dotnet build BarClipApi.Function/BarClipApi.Function.csproj --configuration Release --no-restore
+
+      - name: Publish
+        run: dotnet publish BarClipApi.Function/BarClipApi.Function.csproj --configuration Release --output ./publish/function
+
+      - name: Deploy to Azure Function App
+        uses: Azure/functions-action@v1
+        with:
+          app-name: 'BarClipFunctionApp'
+          publish-profile: ${{ secrets.AZURE_FUNCTION_PUBLISH_PROFILE }}
+          package: ./publish/function
