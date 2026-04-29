@@ -13,9 +13,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\BarClip.Core\BarClipApi.Core.csproj" />
-		<ProjectReference Include="..\BarClip.Data\BarClipApi.Data.csproj" />
-		<ProjectReference Include="..\BarClip.Models\BarClipApi.Models.csproj" />
 		<ProjectReference Include="..\BarClipApi.Core\BarClipApi.Core.csproj" />
 		<ProjectReference Include="..\BarClipApi.Data\BarClipApi.Data.csproj" />
 		<ProjectReference Include="..\BarClipApi.Models\BarClipApi.Models.csproj" />
