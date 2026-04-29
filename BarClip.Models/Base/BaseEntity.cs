@@ -1,4 +1,4 @@
-﻿namespace BarClip.Models.Base;
+﻿namespace BarClipApi.Models.Base;
 public class BaseEntity
 {
     public Guid Id { get; set; } = Guid.NewGuid();

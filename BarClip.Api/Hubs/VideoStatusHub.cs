@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.SignalR;
 using System.Security.Claims;
 
-namespace BarClip.Api.Hubs;
+namespace BarClipApi.Api.Hubs;
 [Authorize]
 public class VideoStatusHub : Hub
 {

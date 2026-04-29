@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using BarClip.Core;
+using BarClipApi.Core;
 
 
 var builder = new HostBuilder()

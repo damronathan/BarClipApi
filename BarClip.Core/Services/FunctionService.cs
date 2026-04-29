@@ -1,14 +1,8 @@
-﻿using BarClip.Core.Helpers;
-using BarClip.Core.Interfaces;
-using BarClip.Core.Repositories;
-using BarClip.Data.Schema;
-using BarClip.Models.Requests;
-using FFMpegCore;
+﻿using BarClipApi.Models.Requests;
 using System.Globalization;
 using System.Text.Json;
-using static BarClip.Core.Helpers.FileHelper;
 
-namespace BarClip.Core.Services;
+namespace BarClipApi.Core.Services;
 public class FunctionService
 {
     private readonly StorageService? _storageService;

@@ -1,10 +1,10 @@
 ﻿using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Sas;
-using BarClip.Models.Requests;
+using BarClipApi.Models.Requests;
 using System.Globalization;
 
-namespace BarClip.Core.Services;
+namespace BarClipApi.Core.Services;
 
 public class StorageService
 {
@@ -94,8 +94,16 @@ public class StorageService
         var containerClient = _blobServiceClient.GetBlobContainerClient(request.ContainerName);
 
         var blobClient = containerClient.GetBlobClient(request.Id.ToString() + request.Extension);
-        var sasUri =  blobClient.GenerateSasUri(BlobSasPermissions.Read, DateTimeOffset.UtcNow.AddHours(24));
-
+        var sasBuilder = new BlobSasBuilder
+        {
+            BlobContainerName = request.ContainerName,
+            BlobName = request.Id.ToString() + request.Extension,
+            Resource = "b",
+            StartsOn = DateTimeOffset.UtcNow.AddMinutes(-15),
+            ExpiresOn = DateTimeOffset.UtcNow.AddHours(24)
+        };
+        sasBuilder.SetPermissions(BlobSasPermissions.Read);
+        var sasUri = blobClient.GenerateSasUri(sasBuilder);
         return sasUri.ToString();
     }
     public string GenerateUploadSasUrlString(string blobName)

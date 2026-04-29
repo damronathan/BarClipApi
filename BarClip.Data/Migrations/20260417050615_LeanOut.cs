@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace BarClip.Data.Migrations
+namespace BarClipApi.Data.Migrations
 {
     /// <inheritdoc />
     public partial class LeanOut : Migration

@@ -1,9 +1,9 @@
 ﻿using Azure.Core;
-using BarClip.Data;
-using BarClip.Data.Schema;
+using BarClipApi.Data;
+using BarClipApi.Data.Schema;
 using Microsoft.EntityFrameworkCore;
 
-namespace BarClip.Core.Repositories;
+namespace BarClipApi.Core.Repositories;
 
 public class UserRepository
 {

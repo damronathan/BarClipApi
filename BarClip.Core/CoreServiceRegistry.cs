@@ -1,17 +1,15 @@
 ﻿using Azure.Identity;
 using Azure.Storage.Blobs;
-using BarClip.Core.Helpers;
-using BarClip.Core.Repositories;
-using BarClip.Core.Services;
-using BarClip.Data;
-using BarClip.Models.Options;
+using BarClipApi.Core.Repositories;
+using BarClipApi.Core.Services;
+using BarClipApi.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 
 
-namespace BarClip.Core;
+namespace BarClipApi.Core;
 
 public static class CoreServiceRegistry
 {
@@ -46,7 +44,6 @@ public static class CoreServiceRegistry
 
         services.AddScoped<FunctionService>();
         services.AddScoped<StorageService>();
-        services.AddScoped<FileHelper>();
 
         RegisterExternalServices(services);
         services.AddSingleton<IApiClientService, ApiClientService>();
@@ -66,7 +63,6 @@ public static class CoreServiceRegistry
         services.AddScoped<IVideoService, VideoService>();
         services.AddScoped<StorageService>();
         services.AddScoped<SessionService>();
-        services.AddScoped<FileHelper>();
     }
     private static void RegisterExternalServices(IServiceCollection services)
     {
@@ -84,18 +80,4 @@ public static class CoreServiceRegistry
         });
     }
 
-    public static IServiceCollection RegisterMauiServices(this IServiceCollection services, IConfiguration configuration)
-    {
-        // SQLite for mobile
-        services.AddDbContext<AppDbContext>(options =>
-            options.UseSqlite(configuration.GetConnectionString("DefaultConnection")));
-        services.Configure<OnnxModelOptions>(configuration.GetSection("OnnxModelOptions"));
-
-        RegisterRepositories(services);
-        RegisterServices(services);
-        services.AddSingleton<BlobServiceClient>(sp => null!);
-
-
-        return services;
-    }
 }

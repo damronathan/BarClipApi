@@ -1,10 +1,10 @@
-﻿using BarClip.Core.Services;
-using BarClip.Models.Requests;
+﻿using BarClipApi.Core.Services;
+using BarClipApi.Models.Requests;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
-namespace BarClip.Api.Controllers;
+namespace BarClipApi.Api.Controllers;
 
 [Route("api/user")]
 [ApiController]
@@ -16,6 +16,14 @@ public class UserController : ControllerBase
     public UserController(UserService userService)
     {
         _userService = userService;
+    }
+
+    [HttpGet]
+    [AllowAnonymous]
+    public async Task<IActionResult> WakeUp()
+    {
+        await _userService.WakeUp();
+        return Ok();
     }
 
     [HttpPatch]

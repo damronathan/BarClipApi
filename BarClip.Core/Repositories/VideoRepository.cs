@@ -1,10 +1,10 @@
-﻿using BarClip.Data;
-using BarClip.Data.Schema;
+﻿using BarClipApi.Data;
+using BarClipApi.Data.Schema;
 using Microsoft.EntityFrameworkCore;
-using BarClip.Core.Services;
-using BarClip.Models.Requests;
+using BarClipApi.Core.Services;
+using BarClipApi.Models.Requests;
 
-namespace BarClip.Core.Repositories;
+namespace BarClipApi.Core.Repositories;
 
 public class VideoRepository
 {

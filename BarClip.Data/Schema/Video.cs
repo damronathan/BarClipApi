@@ -1,8 +1,8 @@
-﻿using BarClip.Models.Base;
+﻿using BarClipApi.Models.Base;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace BarClip.Data.Schema;
+namespace BarClipApi.Data.Schema;
 
 public class Video : BaseEntity
 {

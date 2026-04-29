@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using BarClip.Data;
+using BarClipApi.Data;
 
 namespace SelfTalk.Data.Setup;
 

@@ -1,8 +1,8 @@
-﻿using BarClip.Core.Repositories;
-using BarClip.Data.Schema;
-using BarClip.Models.Requests;
+﻿using BarClipApi.Core.Repositories;
+using BarClipApi.Data.Schema;
+using BarClipApi.Models.Requests;
 
-namespace BarClip.Core.Services;
+namespace BarClipApi.Core.Services;
 
 public class UserService
 {
@@ -13,6 +13,10 @@ public class UserService
         _userRepository = userRepository;
     }
 
+    public async Task WakeUp()
+    {
+        await _userRepository.GetByNameIdentifierAsync("");
+    }
     public async Task<User> GetOrCreateUserAsync(string nameIdentifier, string? email = null)
     {
         var existingUser = await _userRepository.GetByNameIdentifierAsync(nameIdentifier);

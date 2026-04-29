@@ -1,4 +1,4 @@
-﻿namespace BarClip.Models.Requests
+﻿namespace BarClipApi.Models.Requests
 {
     public class GetVideosRequest
     {

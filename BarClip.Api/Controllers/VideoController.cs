@@ -1,14 +1,14 @@
-﻿using BarClip.Core.Repositories;
-using BarClip.Core.Services;
-using BarClip.Models.Requests;
+﻿using BarClipApi.Core.Repositories;
+using BarClipApi.Core.Services;
+using BarClipApi.Models.Requests;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using BarClip.Api.Hubs;
+using BarClipApi.Api.Hubs;
 using Microsoft.AspNetCore.SignalR;
 using System.Security.Claims;
-using BarClip.Models.Responses;
+using BarClipApi.Models.Responses;
 
-namespace BarClip.Api.Controllers;
+namespace BarClipApi.Api.Controllers;
 
 [Route("api/video")]
 [ApiController]
@@ -38,6 +38,13 @@ public class VideoController : ControllerBase
     {
         await _videoService.SaveVideo(request);
         await _hubContext.Clients.User(request.UserId).SendAsync("VideoSaved", request);
+        var sasRequest = new SasUrlRequest
+        {
+            Id = request.SessionId,
+            ContainerName = "videos",
+            Extension = ".mov"
+        };
+        var url = _storageService.GenerateDownloadSasUrl(sasRequest);
 
         return Ok(new { Message = "Videos saved successfully." });
     }
@@ -60,24 +67,6 @@ public class VideoController : ControllerBase
             UploadSasUrl = url
         };
         return response;
-    }
-
-    [HttpPost("upload-test")]
-    [AllowAnonymous]
-    public async Task<IActionResult> UploadTest([FromForm] TestRequest request)
-    {
-        var fileName = request.File.FileName;
-        var fullPath = Path.Combine(Path.GetTempPath(), fileName);
-
-        using (var stream = new FileStream(fullPath, FileMode.Create))
-        {
-            await request.File.CopyToAsync(stream);
-        }
-
-        await _storageService.UploadVideoStringAsync(fileName, fullPath, "videos");
-
-
-        return Ok(new { Message = "Videos saved successfully." });
     }
 
     [HttpGet("test")]

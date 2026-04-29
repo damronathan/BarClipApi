@@ -1,10 +1,10 @@
-﻿using BarClip.Core.Repositories;
-using BarClip.Data.Schema;
-using BarClip.Models.Dto;
-using BarClip.Models.Requests;
+﻿using BarClipApi.Core.Repositories;
+using BarClipApi.Data.Schema;
+using BarClipApi.Models.Dto;
+using BarClipApi.Models.Requests;
 using System.Windows.Markup;
 
-namespace BarClip.Core.Services;
+namespace BarClipApi.Core.Services;
 public class SessionService
 {
     private readonly SessionRepository _repo;
@@ -73,7 +73,7 @@ public class SessionService
     }
     public async Task<SessionDto> UpdateSession(Guid Id, UpdateSessionRequest request)
     {
-        var session = await _repo.UpdateSessionAsync(Id, request);
+        var session = await _repo.UpdateSessionAsync(request);
         
         var thumbnailUrl = _storageService.GenerateDownloadSasUrl(new SasUrlRequest { Id = session.Id, ContainerName = "sessions", Extension = ".jpg" });
         var sessionDto = new SessionDto

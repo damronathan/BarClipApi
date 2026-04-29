@@ -1,10 +1,9 @@
-﻿using BarClip.Data.Schema;
-using BarClip.Data;
+﻿using BarClipApi.Data.Schema;
+using BarClipApi.Data;
 using Microsoft.EntityFrameworkCore;
-using BarClip.Models.Requests;
-using BarClip.Models.Dto;
+using BarClipApi.Models.Requests;
 
-namespace BarClip.Core.Repositories;
+namespace BarClipApi.Core.Repositories;
 public class SessionRepository
 {
     private readonly AppDbContext _context;
@@ -19,9 +18,9 @@ public class SessionRepository
         await _context.Sessions.AddAsync(session);
         await _context.SaveChangesAsync();
     }
-    public async Task<Session> UpdateSessionAsync(Guid Id, UpdateSessionRequest request)
+    public async Task<Session> UpdateSessionAsync(UpdateSessionRequest request)
     {
-        var session = await GetSessionByIdAsync(Id);
+        var session = await GetSessionByIdAsync(request.Id);
         if (session == null)
         {
             throw new InvalidOperationException("No session found");

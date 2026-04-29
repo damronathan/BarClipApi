@@ -1,9 +1,9 @@
 using Azure.Storage.Queues.Models;
-using BarClip.Core.Services;
+using BarClipApi.Core.Services;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 
-namespace BarClipFunction;
+namespace BarClipApi.Function;
 
 public class BarClipQueueTrigger
 {

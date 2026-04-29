@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BarClip.Models.Responses;
+namespace BarClipApi.Models.Responses;
 
 public class VideoResponse
 {

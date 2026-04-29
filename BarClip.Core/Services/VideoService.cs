@@ -1,10 +1,10 @@
-﻿using BarClip.Core.Repositories;
-using BarClip.Data.Schema;
-using BarClip.Models.Requests;
-using BarClip.Models.Responses;
+﻿using BarClipApi.Core.Repositories;
+using BarClipApi.Data.Schema;
+using BarClipApi.Models.Requests;
+using BarClipApi.Models.Responses;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
-namespace BarClip.Core.Services;
+namespace BarClipApi.Core.Services;
 
 public interface IVideoService
 {
@@ -75,4 +75,5 @@ public class VideoService : IVideoService
         }
         return videoResponses;
     }
+
 }

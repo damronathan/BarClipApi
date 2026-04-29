@@ -1,7 +1,7 @@
-﻿using BarClip.Models.Base;
+﻿using BarClipApi.Models.Base;
 using Microsoft.EntityFrameworkCore;
 
-namespace BarClip.Data.Schema;
+namespace BarClipApi.Data.Schema;
 
 public class Session : BaseEntity
 {

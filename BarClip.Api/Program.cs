@@ -1,6 +1,5 @@
-using BarClip.Api.Hubs;
-using BarClip.Core;
-using BarClip.Models.Options;
+using BarClipApi.Api.Hubs;
+using BarClipApi.Core;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.AspNetCore.SignalR;
@@ -17,8 +16,6 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSignalR();
 builder.Services.RegisterCoreServices(builder.Configuration);
-builder.Services.Configure<OnnxModelOptions>(
-    builder.Configuration.GetSection("OnnxModelOptions"));
 builder.Services.AddResponseCompression(opts =>
 {
     opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(

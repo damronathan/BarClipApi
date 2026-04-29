@@ -17,14 +17,18 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\BarClip.Data\BarClip.Data.csproj" />
-		<ProjectReference Include="..\BarClip.Models\BarClip.Models.csproj" />
+		<ProjectReference Include="..\BarClip.Data\BarClipApi.Data.csproj" />
+		<ProjectReference Include="..\BarClip.Models\BarClipApi.Models.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<None Update="Models\PlateDetector.onnx">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Interfaces\" />
 	</ItemGroup>
 
 </Project>

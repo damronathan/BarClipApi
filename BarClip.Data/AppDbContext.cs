@@ -1,6 +1,6 @@
-﻿using BarClip.Data.Schema;
+﻿using BarClipApi.Data.Schema;
 using Microsoft.EntityFrameworkCore;
-namespace BarClip.Data;
+namespace BarClipApi.Data;
 public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
 {
     public DbSet<Video> Videos { get; set; }

@@ -1,10 +1,10 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Identity.Client;
 using System.Net.Http.Headers;
-using BarClip.Models.Requests;
+using BarClipApi.Models.Requests;
 using System.Text.Json;
 using System.Text;
-using BarClip.Core.Services;
+using BarClipApi.Core.Services;
 
 public interface IApiClientService
 {
