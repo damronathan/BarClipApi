@@ -2,7 +2,6 @@
 using BarClipApi.Data.Schema;
 using BarClipApi.Models.Requests;
 using BarClipApi.Models.Responses;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace BarClipApi.Core.Services;
 

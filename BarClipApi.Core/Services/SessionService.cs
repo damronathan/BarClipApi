@@ -28,26 +28,6 @@ public class SessionService
         await _repo.CreateSessionAsync(session);
         return session;
     }
-    public async Task<Session> CreateSessionWithFolders(User user, string basePath, string title)
-    {
-        var session = await CreateSession(user, title);
-
-        var sessionPath = Path.Combine(basePath, session.Id.ToString());
-        var folders = new[]
-        {
-        sessionPath,
-        Path.Combine(sessionPath, "Thumbnails"),
-        Path.Combine(sessionPath, "Processed"),
-        Path.Combine(sessionPath, "Original")
-    };
-
-        foreach (var folder in folders)
-        {
-            Directory.CreateDirectory(folder);
-        }
-
-        return session;
-    }
     public async Task<List<SessionDto>> GetAllSessions(string userId)
     {
         var user = await _userRepository.GetOrCreateUserAsync(userId);

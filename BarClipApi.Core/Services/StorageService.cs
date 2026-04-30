@@ -1,8 +1,6 @@
 ﻿using Azure.Storage.Blobs;
-using Azure.Storage.Blobs.Models;
 using Azure.Storage.Sas;
 using BarClipApi.Models.Requests;
-using System.Globalization;
 
 namespace BarClipApi.Core.Services;
 
@@ -42,41 +40,6 @@ public class StorageService
 
         await blobClient.UploadAsync(filePath, overwrite: true);
     }
-    public async Task UploadVideoStringAsync(string blobName, string filePath, string containerName)
-    {
-        var containerClient = _blobServiceClient.GetBlobContainerClient(containerName);
-
-        var sessionId = Guid.NewGuid();
-
-        var blobClient = containerClient.GetBlobClient(sessionId + ".mov");
-
-        var metadata = new Dictionary<string, string>
-    {
-        { "UserId", "test-user" },
-        { "VideoId", Guid.NewGuid().ToString() },
-        { "SessionId", sessionId.ToString() },
-        { "CreatedAt", DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture) },
-        { "OrderNumber", "1" },
-        { "IsFull", "false" }
-    };
-
-
-        var uploadOptions = new BlobUploadOptions { Metadata = metadata };
-        await blobClient.UploadAsync(filePath, uploadOptions);
-    }
-
-    public async Task CopyVideoAsync(string sourceBlobName, Guid destinationBlobId, string containerName)
-    {
-        var sourceContainerClient = _blobServiceClient.GetBlobContainerClient("originalvideos");
-        var containerClient = _blobServiceClient.GetBlobContainerClient(containerName);
-
-        var sourceBlobClient = sourceContainerClient.GetBlobClient(sourceBlobName);
-        var destinationBlobClient = containerClient.GetBlobClient(destinationBlobId.ToString() + ".mp4");
-
-        await destinationBlobClient.StartCopyFromUriAsync(sourceBlobClient.Uri);
-
-        await sourceBlobClient.DeleteIfExistsAsync();
-    }
 
     public string GenerateUploadSasUrl(SasUrlRequest request)
     {
@@ -106,16 +69,6 @@ public class StorageService
         var sasUri = blobClient.GenerateSasUri(sasBuilder);
         return sasUri.ToString();
     }
-    public string GenerateUploadSasUrlString(string blobName)
-    {
-        var containerClient = _blobServiceClient.GetBlobContainerClient("videos");
-
-        var blobClient = containerClient.GetBlobClient(blobName + ".mov");
-
-        var sasUri = blobClient.GenerateSasUri(BlobSasPermissions.Create, DateTimeOffset.UtcNow.AddHours(1));
-
-        return sasUri.ToString();
-    }
 
     public async virtual Task<IDictionary<string, string>> GetMetaDataAsync(string  blobName, string containerName)
     {
@@ -129,7 +82,7 @@ public class StorageService
     {
         var containerClient = _blobServiceClient.GetBlobContainerClient(containerName);
 
-        var blobClient = containerClient.GetBlobClient(blobName.ToString() + ".mp4");
+        var blobClient = containerClient.GetBlobClient(blobName.ToString() + ".mov");
 
         var response = await blobClient.DeleteIfExistsAsync();
     }
