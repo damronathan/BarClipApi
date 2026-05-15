@@ -63,6 +63,7 @@ public static class CoreServiceRegistry
         services.AddScoped<IVideoService, VideoService>();
         services.AddScoped<StorageService>();
         services.AddScoped<SessionService>();
+        services.AddScoped<UserService>();
     }
     private static void RegisterExternalServices(IServiceCollection services)
     {
