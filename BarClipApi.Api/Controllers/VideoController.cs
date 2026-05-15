@@ -18,16 +18,31 @@ public class VideoController : ControllerBase
     private readonly IVideoService _videoService;
     private readonly IHubContext<VideoStatusHub> _hubContext;
     private readonly StorageService _storageService;
-    public VideoController(IVideoService videoService, IHubContext<VideoStatusHub> hubContext, StorageService storageService)
+    private readonly UserService _userService;
+    public VideoController(IVideoService videoService, IHubContext<VideoStatusHub> hubContext, StorageService storageService, UserService userService)
     {
         _videoService = videoService;
         _hubContext = hubContext;
         _storageService = storageService;
+        _userService = userService;
     }
 
     [HttpGet]
     public async Task<ActionResult<ICollection<VideoResponse>>> GetVideos([FromQuery] GetVideosRequest request)
     {
+        if (request.SessionId == null)
+        {
+            var nameId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (nameId == null)
+            {
+                return Unauthorized("User identification not found");
+            }
+
+            var user = await _userService.GetOrCreateUserAsync(nameId);
+
+            request.UserId = user.Id;
+        }
         var response = await _videoService.GetVideos(request);
 
         return Ok(response);
