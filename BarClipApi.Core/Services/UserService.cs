@@ -26,7 +26,6 @@ public class UserService
             if ((email != null && existingUser.Email != email))
             {
                 existingUser.Email = email ?? existingUser.Email;
-                existingUser.EntraId = nameIdentifier;
 
                 await _userRepository.UpdateAsync(existingUser);
             }
