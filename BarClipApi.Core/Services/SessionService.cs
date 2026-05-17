@@ -35,7 +35,7 @@ public class SessionService
         var sessionDtos = new List<SessionDto>();
         foreach (var session in sessions)
         {
-            var thumbnailUrl = _storageService.GenerateDownloadSasUrl(new SasUrlRequest { Id = session.Id, ContainerName = "sessions", Extension = ".jpg" });
+            var thumbnailUrl = _storageService.GenerateDownloadSasUrl(session.Id, "sessions", ".jpg" );
             var sessionDto = new SessionDto
             {
                 Id = session.Id,
@@ -55,7 +55,7 @@ public class SessionService
     {
         var session = await _repo.UpdateSessionAsync(request);
         
-        var thumbnailUrl = _storageService.GenerateDownloadSasUrl(new SasUrlRequest { Id = session.Id, ContainerName = "sessions", Extension = ".jpg" });
+        var thumbnailUrl = _storageService.GenerateDownloadSasUrl(session.Id, "sessions", ".jpg");
         var sessionDto = new SessionDto
         {
             Id = session.Id,

@@ -41,26 +41,26 @@ public class StorageService
         await blobClient.UploadAsync(filePath, overwrite: true);
     }
 
-    public string GenerateUploadSasUrl(SasUrlRequest request)
+    public string GenerateUploadSasUrl(Guid id, string containerName, string extension)
     {
-        var containerClient = _blobServiceClient.GetBlobContainerClient(request.ContainerName);
+        var containerClient = _blobServiceClient.GetBlobContainerClient(containerName);
 
-        var blobClient = containerClient.GetBlobClient(request.Id.ToString() + request.Extension);
+        var blobClient = containerClient.GetBlobClient(id.ToString() + extension);
 
         var sasUri = blobClient.GenerateSasUri(BlobSasPermissions.Create, DateTimeOffset.UtcNow.AddHours(1));
 
         return sasUri.ToString();
     }
 
-    public string GenerateDownloadSasUrl(SasUrlRequest request)
+    public string GenerateDownloadSasUrl(Guid id, string containerName, string extension)
     {
-        var containerClient = _blobServiceClient.GetBlobContainerClient(request.ContainerName);
+        var containerClient = _blobServiceClient.GetBlobContainerClient(containerName);
 
-        var blobClient = containerClient.GetBlobClient(request.Id.ToString() + request.Extension);
+        var blobClient = containerClient.GetBlobClient(id.ToString() + extension);
         var sasBuilder = new BlobSasBuilder
         {
-            BlobContainerName = request.ContainerName,
-            BlobName = request.Id.ToString() + request.Extension,
+            BlobContainerName = containerName,
+            BlobName = id.ToString() + extension,
             Resource = "b",
             StartsOn = DateTimeOffset.UtcNow.AddMinutes(-15),
             ExpiresOn = DateTimeOffset.UtcNow.AddHours(24)

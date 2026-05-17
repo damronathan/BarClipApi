@@ -53,13 +53,8 @@ public class VideoController : ControllerBase
     {
         await _videoService.SaveVideo(request);
         await _hubContext.Clients.User(request.UserId).SendAsync("VideoSaved", request);
-        var sasRequest = new SasUrlRequest
-        {
-            Id = request.SessionId,
-            ContainerName = "videos",
-            Extension = ".mov"
-        };
-        var url = _storageService.GenerateDownloadSasUrl(sasRequest);
+        
+        var url = _storageService.GenerateDownloadSasUrl(request.SessionId, "videos", ".mov");
 
         return Ok(new { Message = "Videos saved successfully." });
     }
@@ -74,12 +69,15 @@ public class VideoController : ControllerBase
             return Unauthorized("User identification not found");
         }
 
-        var url = await _videoService.GetUploadSasUrl(request);
+            var videoUrl = await _videoService.GetUploadSasUrl(request.Id, "videos", ".mov");
+            var thumbnailUrl = await _videoService.GetUploadSasUrl(request.Id, "thumbnails", ".jpg");
         
+               
         var response = new UploadSasUrlResponse
         {
             UserId = userId,
-            UploadSasUrl = url
+            VideoSasUrl = videoUrl,
+            ThumbnailSasUrl = thumbnailUrl
         };
         return response;
     }

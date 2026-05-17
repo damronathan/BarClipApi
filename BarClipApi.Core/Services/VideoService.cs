@@ -7,7 +7,7 @@ namespace BarClipApi.Core.Services;
 
 public interface IVideoService
 {
-    Task<string> GetUploadSasUrl(SasUrlRequest request);
+    Task<string> GetUploadSasUrl(Guid id, string containerName, string extension);
     Task<ICollection<VideoResponse>> GetVideos(GetVideosRequest request);
     Task SaveVideo(VideoRequest request);
 }
@@ -24,7 +24,7 @@ public class VideoService : IVideoService
     }
     public async Task SaveVideo(VideoRequest request)
     {
-        var url = _storageService.GenerateDownloadSasUrl(new SasUrlRequest { Id = request.VideoId, ContainerName = "videos", Extension = ".mov" });
+        var url = _storageService.GenerateDownloadSasUrl(request.VideoId, "videos", ".mov");
 
         if (string.IsNullOrEmpty(url))
         {
@@ -33,9 +33,9 @@ public class VideoService : IVideoService
 
         await _repo.SaveVideoAsync(request);
     }
-    public async Task<string> GetUploadSasUrl(SasUrlRequest request)
+    public async Task<string> GetUploadSasUrl(Guid id, string containerName, string extension)
     {
-        var url = _storageService.GenerateUploadSasUrl(request);
+        var url = _storageService.GenerateUploadSasUrl(id, containerName, extension);
 
         if (string.IsNullOrEmpty(url))
         {
@@ -67,8 +67,8 @@ public class VideoService : IVideoService
                 Id = video.Id,
                 OrderNumber = video.OrderNumber,
                 IsFull = video.IsFull,
-                VideoSasUrl = _storageService.GenerateDownloadSasUrl(new SasUrlRequest { Id = video.Id, ContainerName = "videos", Extension = ".mov" }),
-                ThumbnailSasUrl = _storageService.GenerateDownloadSasUrl(new SasUrlRequest { Id = video.Id, ContainerName = "thumbnails", Extension = ".jpg" })
+                VideoSasUrl = _storageService.GenerateDownloadSasUrl(video.Id, "videos", ".mov"),
+                ThumbnailSasUrl = _storageService.GenerateDownloadSasUrl(video.Id, "thumbnails", ".jpg")
             };
             videoResponses.Add(videoResponse);
         }
