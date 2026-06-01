@@ -10,8 +10,7 @@ using Microsoft.Identity.Web;
 
 var builder = WebApplication.CreateBuilder(args);
 var connStr = builder.Configuration.GetConnectionString("DefaultConnection");
-Console.WriteLine($"CONNECTION STRING: {connStr ?? "NULL"}");
-
+Console.Error.WriteLine($"CONNECTION STRING: {connStr ?? "NULL"}");
 // Add services to the container.
 
 builder.Services.AddControllers();
