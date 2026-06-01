@@ -17,12 +17,12 @@ public static class CoreServiceRegistry
     {
         // Database registration
         services.AddDbContext<AppDbContext>(options =>
-            options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"), sqlOptions =>
+            options.UseNpgsql(configuration.GetConnectionString("DefaultConnection"), sqlOptions =>
             {
                 sqlOptions.EnableRetryOnFailure(
                     maxRetryCount: 5,
                     maxRetryDelay: TimeSpan.FromSeconds(10),
-                    errorNumbersToAdd: null
+                    errorCodesToAdd: null
                 );
                 sqlOptions.UseRelationalNulls();
             }));
