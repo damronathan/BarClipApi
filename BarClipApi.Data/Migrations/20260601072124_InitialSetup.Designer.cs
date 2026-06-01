@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BarClipApi.Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260601063934_InitialSetup")]
+    [Migration("20260601072124_InitialSetup")]
     partial class InitialSetup
     {
         /// <inheritdoc />
