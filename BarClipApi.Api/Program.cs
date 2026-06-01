@@ -9,9 +9,9 @@ using Microsoft.Identity.Web;
 
 
 var builder = WebApplication.CreateBuilder(args);
-var logger = LoggerFactory.Create(config => config.AddConsole()).CreateLogger("Startup");
 var connStr = builder.Configuration.GetConnectionString("DefaultConnection");
-logger.LogInformation("CONNECTION STRING: {ConnStr}", connStr ?? "NULL");
+if (string.IsNullOrEmpty(connStr))
+    throw new Exception("CONNECTION STRING IS NULL OR EMPTY");
 // Add services to the container.
 
 builder.Services.AddControllers();
