@@ -24,7 +24,6 @@ public static class CoreServiceRegistry
                     maxRetryDelay: TimeSpan.FromSeconds(10),
                     errorCodesToAdd: null
                 );
-                sqlOptions.UseRelationalNulls();
             }));
 
 
